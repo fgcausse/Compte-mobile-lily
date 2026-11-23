@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Mes Comptes — Vue Mobile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #e2e8f0;
+            --bg-card: #ffffff;
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --header-grad: linear-gradient(135deg, #0f172a, #1e3a8a);
+            --blue-dark: #1e3a8a;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --green: #059669;
+            --red: #dc2626;
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: calc(28px + env(safe-area-inset-bottom));
+            overflow-x: hidden;
+        }
+
+        /* HEADER & KPI */
+        header {
+            position: sticky; top: 0; z-index: 40;
+            background: var(--header-grad);
+            color: white;
+            padding: calc(10px + env(safe-area-inset-top)) 14px 12px 14px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+        }
+
+        /* LIGNE 1 : TITRE + BOUTON BUREAU + DÉBUT CYCLE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE */
+        .header-row-1 {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 6px; margin-bottom: 10px;
+        }
+        .header-title-group {
+            display: flex; align-items: center; gap: 6px;
+            min-width: 0; flex: 1;
+        }
+        .app-title {
+            font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 6px;
+            min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .header-row1-right {
+            display: flex; align-items: center; gap: 4px; flex-shrink: 0;
+        }
+        .btn-cycle-trigger {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            height: 30px;
+            padding: 0 7px;
+            border-radius: 9px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 4px; cursor: pointer; font-family: inherit;
+            font-size: 11px; font-weight: 900; flex-shrink: 0;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .btn-cycle-trigger:active { transform: scale(0.95); background: rgba(255,255,255,0.24); }
+        .btn-cycle-trigger i { font-size: 11px; color: var(--primary); }
+
+        .btn-mini-header {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 12px; flex-shrink: 0;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .btn-mini-header:active { transform: scale(0.95); background: rgba(255,255,255,0.24); }
+        .cloud-badge {
+            font-size: 10px; font-weight: 800; height: 30px; padding: 0 7px; border-radius: 9px;
+            background: rgba(255,255,255,0.12); color: #cbd5e1;
+            display: inline-flex; align-items: center; gap: 4px;
+            white-space: nowrap; flex-shrink: 0;
+        }
+        .cloud-badge.ok { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; }
+        .cloud-badge.saving { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
+        .cloud-badge.err { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+
+        /* LIGNE 2 : CALENDRIER + BOUTON DÉPENSE BIEN SÉPARÉS */
+        .header-row-2 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .month-select {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 38px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 0 10px;
+            outline: none;
+            text-align: center;
+            cursor: pointer;
+        }
+        .month-select::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.85;
+            cursor: pointer;
+        }
+        .btn-toolbar-primary {
+            flex: 0 0 auto;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--primary);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .btn-toolbar-primary:active { transform: scale(0.98); background: var(--primary-hover); }
+
+        .kpi-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px; padding: 10px 12px;
+            backdrop-filter: blur(6px);
+        }
+        .kpi-box { display: flex; flex-direction: column; min-width: 0; }
+        .kpi-label { font-size: 10px; text-transform: uppercase; font-weight: 800; color: rgba(255,255,255,0.68); letter-spacing: 0.4px; }
+        .kpi-val { font-size: 18px; font-weight: 900; line-height: 1.2; margin-top: 2px; white-space: nowrap; }
+        .val-green { color: #34d399; }
+        .val-red { color: #f87171; }
+        .val-white { color: #ffffff; }
+
+        /* CONTENEUR PRINCIPAL */
+        .container { padding: 16px 14px; max-width: 600px; margin: 0 auto; }
+
+        .section-title {
+            font-size: 12px; font-weight: 900; text-transform: uppercase; color: var(--text-muted);
+            letter-spacing: 0.6px; margin: 18px 0 10px 4px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        /* 1. CARTES SEMAINES */
+        .week-card {
+            background: var(--bg-card); border-radius: 14px; padding: 13px 15px;
+            margin-bottom: 9px; border-left: 5px solid var(--green);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
+        .week-card.neg { border-left-color: var(--red); }
+        .week-card.active-week {
+            border: 2px solid var(--primary); border-left-width: 6px; background: #fffaf5;
+        }
+        .badge-now {
+            position: absolute; top: -9px; right: 12px; background: var(--primary); color: #fff;
+            font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
+        }
+        .w-title { font-size: 13px; font-weight: 900; color: var(--text-main); }
+        .w-sub { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 3px; }
+        .w-reste { font-size: 16px; font-weight: 900; flex-shrink: 0; margin-left: 8px; }
+
+        /* 2. SOMMES ENTRÉES & SORTIES FIXES */
+        details.fixed-panel {
+            background: var(--bg-card); border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 10px;
+        }
+        details.fixed-panel summary {
+            list-style: none; padding: 12px 14px; color: #fff; font-weight: 800; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 8px;
+        }
+        details.fixed-panel summary::-webkit-details-marker { display: none; }
+        .bg-green { background: #047857; }
+        .bg-red { background: #b91c1c; }
+        .sum-left { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sum-right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
+        .btn-add-fixed {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.45);
+            background: rgba(255,255,255,0.18);
+            color: #fff; font-size: 16px; font-weight: 900; line-height: 1;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .btn-add-fixed:active { transform: scale(0.92); background: rgba(255,255,255,0.3); }
+        .chevron { font-size: 12px; transition: transform 0.2s; opacity: 0.85; margin-right: 2px; }
+        details[open] .chevron { transform: rotate(180deg); }
+
+        .fixed-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 10px 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; gap: 6px;
+            cursor: pointer;
+        }
+        .fixed-row:active { background: #fffaf5; }
+        .fixed-row:last-child { border-bottom: none; }
+        .fixed-row.checked { opacity: 0.55; background: #f8fafc; }
+        .fixed-row.checked .f-name { text-decoration: line-through; }
+        .f-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+        .f-day {
+            background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 800;
+            padding: 2px 6px; border-radius: 6px; flex-shrink: 0;
+        }
+        .f-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .f-right { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+        .f-amt { font-weight: 900; white-space: nowrap; margin-right: 4px; }
+
+        /* 3. TABLEAU DES DÉPENSES EN FIN DE PAGE */
+        .table-card {
+            background: var(--bg-card); border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .table-expenses { width: 100%; border-collapse: collapse; }
+        .table-expenses th {
+            text-align: left; padding: 10px 8px; background: #f8fafc;
+            font-size: 10px; text-transform: uppercase; color: var(--text-muted);
+            border-bottom: 1px solid var(--border); font-weight: 800;
+        }
+        .table-expenses td {
+            padding: 11px 8px; font-size: 13px; border-bottom: 1px solid #f1f5f9;
+            font-weight: 700; vertical-align: middle;
+        }
+        .table-expenses tr:last-child td { border-bottom: none; }
+        .exp-row-clickable { cursor: pointer; }
+        .exp-row-clickable:active { background: #fffaf5; }
+        .exp-cat-tag {
+            display: inline-block; font-size: 10px; font-weight: 800; color: var(--blue-dark);
+            background: #eff6ff; padding: 2px 6px; border-radius: 5px; margin-top: 3px;
+        }
+        .exp-actions-cell {
+            display: flex; align-items: center; justify-content: flex-end; gap: 2px;
+        }
+        .btn-edit-exp {
+            background: none; border: none; color: #64748b; cursor: pointer;
+            font-size: 13px; padding: 6px 6px; border-radius: 8px;
+        }
+        .btn-edit-exp:active { color: var(--blue-dark); background: #eff6ff; }
+        .btn-del-exp {
+            background: none; border: none; color: #94a3b8; cursor: pointer;
+            font-size: 14px; padding: 6px 6px; border-radius: 8px;
+        }
+        .btn-del-exp:active { color: var(--red); background: #fef2f2; }
+
+        /* MODALES / POPUPS */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 100;
+            background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);
+            align-items: flex-end; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-overlay.center-popup {
+            align-items: center;
+            padding: 16px;
+        }
+        .modal-sheet {
+            background: #fff; width: 100%; max-width: 540px;
+            border-radius: 22px 22px 0 0; overflow: hidden;
+            max-height: 94vh; overflow-y: auto;
+            padding-bottom: env(safe-area-inset-bottom);
+            animation: slideUp 0.2s ease-out;
+        }
+        .modal-popup-card {
+            background: #fff; width: 100%; max-width: 380px;
+            border-radius: 20px; overflow: hidden;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+            animation: popScale 0.18s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes popScale { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header {
+            padding: 14px 18px; background: var(--header-grad); color: #fff;
+            font-weight: 800; font-size: 16px; display: flex; justify-content: space-between; align-items: center;
+            gap: 10px;
+        }
+        .modal-header.bg-green-grad { background: linear-gradient(135deg, #064e3b, #047857); }
+        .modal-header.bg-red-grad { background: linear-gradient(135deg, #7f1d1d, #b91c1c); }
+        .modal-header-title {
+            display: flex; align-items: center; gap: 8px; min-width: 0;
+        }
+        .close-btn {
+            background: rgba(255,255,255,0.12); border: none; color: #fff;
+            width: 32px; height: 32px; border-radius: 50%; font-size: 22px; line-height: 1;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .modal-body {
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+        }
+        .form-group {
+            display: flex; flex-direction: column; width: 100%; min-width: 0;
+        }
+        .form-group label {
+            display: block; font-size: 11px; font-weight: 800; color: var(--blue-dark);
+            text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.4px;
+        }
+        .form-control {
+            display: block; width: 100%; max-width: 100%; min-width: 0; height: 42px;
+            padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 10px;
+            font-size: 14px; font-weight: 700; color: var(--text-main); background: #fff; outline: none;
+        }
+        .form-control:focus { border-color: var(--primary); }
+        .amount-display {
+            display: block; width: 100%; max-width: 100%; height: 52px;
+            padding: 0 14px; font-size: 28px; font-weight: 900; text-align: right;
+            color: var(--primary); background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; outline: none;
+        }
+        .numpad-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; width: 100%;
+        }
+        .numpad-btn {
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;
+            font-size: 20px; font-weight: 800; color: var(--blue-dark);
+            height: 46px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; touch-action: manipulation;
+        }
+        .numpad-btn:active { background: #e2e8f0; transform: scale(0.98); }
+        .numpad-btn.btn-orange { color: var(--primary); }
+        .modal-footer {
+            padding: 12px 16px 16px 16px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .btn-modal {
+            height: 46px; padding: 0 12px; border-radius: 12px; border: none;
+            font-size: 14px; font-weight: 900; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-cancel { background: #e2e8f0; color: var(--text-main); }
+        .btn-submit { background: var(--primary); color: #fff; }
+        .btn-submit-green { background: #047857; color: #fff; }
+        .btn-submit-red { background: #b91c1c; color: #fff; }
+
+        /* GRILLE DU POPUP DÉBUT DE MOIS (JOURS 1 À 31) */
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 6px;
+        }
+        .day-pill {
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .day-pill:active { transform: scale(0.94); }
+        .day-pill.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            font-weight: 900;
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+        }
+
+        /* LISTE DES COMPTES DANS LA MODALE */
+        .account-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 12px; border: 1px solid #e2e8f0; border-radius: 12px;
+            margin-bottom: 8px; background: #f8fafc;
+        }
+        .account-item.active { border-color: var(--primary); background: #fffaf5; }
+        .account-info { min-width: 0; flex: 1; cursor: pointer; }
+        .account-name { font-size: 14px; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .account-url { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+        .badge-active-acc { background: var(--primary); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; }
+
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spin { animation: fa-spin 1s infinite linear; }
+    </style>
+</head>
+<body>
+
+    <!-- EN-TÊTE + 4 KPI -->
+    <header>
+        <!-- LIGNE 1 : TITRE + BOUTON BUREAU + DÉBUT MOIS + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE -->
+        <div class="header-row-1">
+            <div class="header-title-group">
+                <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
+                <button type="button" class="btn-mini-header" onclick="window.location.href='bureau.html'" title="Passer à la version Bureau" aria-label="Version Bureau">
+                    <i class="fas fa-desktop"></i>
+                </button>
+            </div>
+            <div class="header-row1-right">
+                <button type="button" class="btn-cycle-trigger" onclick="openCycleDayModal()" title="Choisir le jour de début de mois">
+                    <i class="fas fa-calendar-day"></i>
+                    <span id="startDayLabel">J25</span>
+                </button>
+                <button type="button" class="btn-mini-header" onclick="openAccountModal()" title="Nouveau dossier / Fichier Drive" aria-label="Nouveau dossier">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+                <button type="button" class="btn-mini-header" onclick="loadFromGoogleSheets(true)" title="Rafraîchir" aria-label="Rafraîchir">
+                    <i class="fas fa-sync-alt" id="syncIcon"></i>
+                </button>
+                <span id="cloudStatus" class="cloud-badge"><i class="fas fa-cloud"></i> Sync</span>
+            </div>
+        </div>
+
+        <!-- LIGNE 2 : CALENDRIER + BOUTON DÉPENSE BIEN SÉPARÉS -->
+        <div class="header-row-2">
+            <input type="month" id="datePicker" class="month-select" aria-label="Période">
+            <button type="button" class="btn-toolbar-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Dépense
+            </button>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-box">
+                <span class="kpi-label">Entrées</span>
+                <span class="kpi-val val-green" id="kpiIn">0,00 €</span>
+            </div>
+            <div class="kpi-box" style="text-align: right;">
+                <span class="kpi-label">Charges Fixes</span>
+                <span class="kpi-val val-red" id="kpiOut">0,00 €</span>
+            </div>
+            <div class="kpi-box">
+                <span class="kpi-label">Reste à Vivre</span>
+                <span class="kpi-val val-white" id="kpiBudget">0,00 €</span>
+            </div>
+            <div class="kpi-box" style="text-align: right;">
+                <span class="kpi-label">Reste Fin Mois</span>
+                <span class="kpi-val val-green" id="kpiFinal">0,00 €</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 1. LES SEMAINES -->
+        <div class="section-title"><span>Budget par semaine</span></div>
+        <div id="weeksList"></div>
+
+        <!-- 2. SOMMES ENTRÉES ET SORTIES (AJOUT, MODIFICATION & SUPPRESSION) -->
+        <div class="section-title"><span>Entrées & Charges fixes</span></div>
+        
+        <details class="fixed-panel" id="panelInMobile">
+            <summary class="bg-green">
+                <span class="sum-left"><i class="fas fa-arrow-down"></i> Salaires & Rentrées</span>
+                <div class="sum-right">
+                    <button type="button" class="btn-add-fixed" onclick="event.preventDefault(); event.stopPropagation(); openFixedModal('in');" title="Ajouter une entrée" aria-label="Ajouter une entrée">+</button>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </summary>
+            <div id="listInMobile"></div>
+        </details>
+
+        <details class="fixed-panel" id="panelOutMobile">
+            <summary class="bg-red">
+                <span class="sum-left"><i class="fas fa-arrow-up"></i> Charges Fixes</span>
+                <div class="sum-right">
+                    <button type="button" class="btn-add-fixed" onclick="event.preventDefault(); event.stopPropagation(); openFixedModal('out');" title="Ajouter une charge fixe" aria-label="Ajouter une charge fixe">+</button>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </summary>
+            <div id="listOutMobile"></div>
+        </details>
+
+        <!-- 3. TABLEAU DES DÉPENSES EN FIN DE PAGE -->
+        <div class="section-title">
+            <span>Dépenses du mois</span>
+            <span id="expCount" style="color: var(--primary);">0</span>
+        </div>
+        <div class="table-card">
+            <table class="table-expenses">
+                <thead>
+                    <tr>
+                        <th style="width: 48px;">Date</th>
+                        <th>Dépense & Catégorie</th>
+                        <th style="text-align: right;">Montant</th>
+                        <th style="width: 62px; text-align: right;"></th>
+                    </tr>
+                </thead>
+                <tbody id="tableExpenses"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- POPUP CHOIX DU DÉBUT DU MOIS -->
+    <div class="modal-overlay center-popup" id="cycleDayModal" onclick="if(event.target===this) closeCycleDayModal()">
+        <div class="modal-popup-card">
+            <div class="modal-header">
+                <div class="modal-header-title"><i class="fas fa-calendar-day"></i><span>Début du mois</span></div>
+                <button type="button" class="close-btn" onclick="closeCycleDayModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 12px; color: var(--text-muted); font-weight: 700; line-height: 1.4;">
+                    Sélectionnez le jour du mois où commence votre cycle budgétaire (ex. : le 25 à réception du salaire) :
+                </p>
+                <div class="days-grid" id="cycleDaysGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE AJOUT / MODIFICATION ENTRÉE OU CHARGE FIXE -->
+    <div class="modal-overlay" id="fixedModal" onclick="if(event.target===this) closeFixedModal()">
+        <div class="modal-sheet">
+            <div class="modal-header" id="fixedModalHeader">
+                <div class="modal-header-title" id="fixedModalTitle"><i class="fas fa-plus-circle"></i><span>Nouvelle ligne</span></div>
+                <button type="button" class="close-btn" onclick="closeFixedModal()">&times;</button>
+            </div>
+            <form onsubmit="event.preventDefault(); saveFixedItem();">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Jour du mois (1 à 31)</label>
+                        <input type="number" id="fDay" class="form-control" min="1" max="31" required>
+                    </div>
+                    <div class="form-group">
+                        <label id="fNameLabel">Source / Libellé</label>
+                        <input type="text" id="fName" class="form-control" autocomplete="off" required placeholder="Ex: Salaire, Loyer, EDF...">
+                    </div>
+                    <div class="form-group">
+                        <label>Montant (€)</label>
+                        <input type="number" step="0.01" min="0.01" id="fAmount" class="form-control" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-cancel" onclick="closeFixedModal()">Annuler</button>
+                    <button type="submit" class="btn-modal btn-submit" id="fixedSubmitBtn"><i class="fas fa-check"></i> Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE NOUVEAU DOSSIER / GESTION GOOGLE DRIVE -->
+    <div class="modal-overlay" id="accountModal" onclick="if(event.target===this) closeAccountModal()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-header-title"><i class="fas fa-folder-plus"></i><span>Dossiers & Fichiers Drive</span></div>
+                <button type="button" class="close-btn" onclick="closeAccountModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Dossiers enregistrés</label>
+                    <div id="accountsList"></div>
+                </div>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 2px 0;">
+                <form onsubmit="event.preventDefault(); addNewAccount();">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="form-group">
+                            <label>Nom du nouveau dossier</label>
+                            <input type="text" id="newAccName" class="form-control" required placeholder="Ex: Compte Joint, Perso 2...">
+                        </div>
+                        <div class="form-group">
+                            <label>Nouvelle URL Google Apps Script (/exec)</label>
+                            <input type="url" id="newAccUrl" class="form-control" required placeholder="https://script.google.com/macros/s/.../exec">
+                        </div>
+                        <button type="submit" class="btn-modal btn-submit" style="width: 100%;">
+                            <i class="fas fa-plus"></i> Ajouter et ouvrir ce dossier
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE AJOUT / MODIFICATION DÉPENSE -->
+    <div class="modal-overlay" id="modal" onclick="if(event.target===this) closeModal()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <div class="modal-header-title" id="expenseModalTitle"><i class="fas fa-cart-plus"></i><span>Nouvelle dépense</span></div>
+                <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form onsubmit="event.preventDefault(); saveExpense();">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Date de la dépense</label>
+                        <input type="date" id="mDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select id="mCat" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Description / Lieu</label>
+                        <input type="text" id="mDesc" class="form-control" autocomplete="off" required placeholder="Ex: Courses, Essence, Resto...">
+                    </div>
+                    <div class="form-group">
+                        <label>Montant (€)</label>
+                        <input type="text" id="mAmount" class="amount-display" placeholder="0.00" readonly>
+                    </div>
+                    <div class="numpad-grid">
+                        <button type="button" class="numpad-btn" onclick="addNum('1')">1</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('2')">2</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('3')">3</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('4')">4</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('5')">5</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('6')">6</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('7')">7</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('8')">8</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('9')">9</button>
+                        <button type="button" class="numpad-btn btn-orange" onclick="addNum('.')">.</button>
+                        <button type="button" class="numpad-btn" onclick="addNum('0')">0</button>
+                        <button type="button" class="numpad-btn btn-orange" onclick="delNum()" aria-label="Effacer">⌫</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-cancel" onclick="closeModal()">Annuler</button>
+                    <button type="submit" class="btn-modal btn-submit" id="expenseSubmitBtn"><i class="fas fa-check"></i> Valider</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr1TQ3Q3RBB_FAYSOk6kSVxweAOuAk06NdqjKUrxzXPqF6Go9kNViA6mezbtDlOwuW9g/exec";
+        const genId = (prefix) => prefix + '_' + Date.now() + Math.random().toString(36).substr(2, 5);
+
+        let accounts = JSON.parse(localStorage.getItem("comptes_accounts_list") || "null") || [
+            { id: "default", name: "Mes Comptes", url: DEFAULT_SCRIPT_URL, storageKey: "comptes_pc_v26_final" }
+        ];
+        let activeAccountId = localStorage.getItem("comptes_active_account_id") || "default";
+
+        function getActiveAccount() {
+            return accounts.find(a => a.id === activeAccountId) || accounts[0];
+        }
+
+        function saveAccountsConfig() {
+            localStorage.setItem("comptes_accounts_list", JSON.stringify(accounts));
+            localStorage.setItem("comptes_active_account_id", activeAccountId);
+        }
+
+        function openAccountModal() {
+            renderAccountsList();
+            document.getElementById("newAccName").value = "";
+            document.getElementById("newAccUrl").value = "";
+            document.getElementById("accountModal").classList.add("open");
+        }
+
+        function closeAccountModal() {
+            document.getElementById("accountModal").classList.remove("open");
+        }
+
+        function renderAccountsList() {
+            const container = document.getElementById("accountsList");
+            container.innerHTML = accounts.map(acc => {
+                const isActive = acc.id === activeAccountId;
+                return `
+                <div class="account-item ${isActive ? 'active' : ''}">
+                    <div class="account-info" onclick="switchAccount('${acc.id}')">
+                        <div class="account-name">
+                            ${acc.name}
+                            ${isActive ? '<span class="badge-active-acc">Actif</span>' : ''}
+                        </div>
+                        <div class="account-url">${acc.url}</div>
+                    </div>
+                    ${acc.id !== 'default' ? `
+                        <button type="button" class="btn-del-exp" onclick="deleteAccount('${acc.id}')" title="Supprimer ce dossier">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    ` : ''}
+                </div>`;
+            }).join("");
+        }
+
+        function addNewAccount() {
+            const name = document.getElementById("newAccName").value.trim();
+            const url = document.getElementById("newAccUrl").value.trim();
+            if (!name || !url) return;
+
+            const newId = "acc_" + Date.now();
+            accounts.push({
+                id: newId,
+                name: name,
+                url: url,
+                storageKey: "comptes_pc_v26_" + newId
+            });
+            activeAccountId = newId;
+            saveAccountsConfig();
+            closeAccountModal();
+            switchAccount(newId);
+        }
+
+        function switchAccount(id) {
+            activeAccountId = id;
+            saveAccountsConfig();
+            state.in = [];
+            state.out = [];
+            state.expenses = [];
+            state.pointage = {};
+            updateHeaderAccountTitle();
+            closeAccountModal();
+            renderAll();
+            loadFromGoogleSheets(false);
+        }
+
+        function deleteAccount(id) {
+            if (!confirm("Retirer ce dossier de la liste ? (Vos données restent intactes sur Google Drive)")) return;
+            accounts = accounts.filter(a => a.id !== id);
+            if (activeAccountId === id) {
+                activeAccountId = accounts[0].id;
+            }
+            saveAccountsConfig();
+            renderAccountsList();
+            switchAccount(activeAccountId);
+        }
+
+        function updateHeaderAccountTitle() {
+            const acc = getActiveAccount();
+            const el = document.getElementById("headerAccountName");
+            if (el) {
+                el.innerHTML = `<i class="fas fa-wallet" style="color: var(--primary); flex-shrink:0;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">${acc.name}</span>`;
+            }
+        }
+
+        const categories = [
+            "ALIMENTATION & COURSES", "ASSURANCES & BANQUE", "AUTO & TRANSPORTS", "BEAUTÉ & SOINS",
+            "CADEAUX", "ENFANTS & SCOLARITÉ", "IMPÔTS & TAXES", "LOISIRS & MULTIMÉDIA",
+            "MAISON & ÉNERGIE", "RESTAURANTS & FAST-FOOD", "SANTÉ", "SHOPPING & HABILLEMENT",
+            "VIREMENTS", "AUTRE"
+        ];
+
+        let state = {
+            currentDate: new Date().toISOString().slice(0, 7),
+            startDay: 25,
+            in: [],
+            out: [],
+            expenses: [],
+            pointage: {}
+        };
+
+        let currentAmountStr = "";
+        let editingExpenseId = null;
+        let currentFixedType = "out";
+        let editingFixedIdx = null;
+        let saveTimeout = null;
+
+        /* POPUP DÉBUT DU MOIS */
+        function updateStartDayBadge() {
+            const lbl = document.getElementById("startDayLabel");
+            if (lbl) lbl.innerText = "J" + state.startDay;
+        }
+
+        function openCycleDayModal() {
+            const grid = document.getElementById("cycleDaysGrid");
+            let html = "";
+            for (let d = 1; d <= 31; d++) {
+                const isSelected = d === Number(state.startDay);
+                html += `<button type="button" class="day-pill ${isSelected ? 'selected' : ''}" onclick="selectCycleStartDay(${d})">${d}</button>`;
+            }
+            grid.innerHTML = html;
+            document.getElementById("cycleDayModal").classList.add("open");
+        }
+
+        function closeCycleDayModal() {
+            document.getElementById("cycleDayModal").classList.remove("open");
+        }
+
+        function selectCycleStartDay(day) {
+            state.startDay = day;
+            updateStartDayBadge();
+            state.expenses.forEach(exp => {
+                exp.dateStr = getCycleMonthForDate(exp.exactDate, state.startDay);
+            });
+            saveData();
+            closeCycleDayModal();
+            renderAll();
+        }
+
+        function setCloudStatus(type, text) {
+            const el = document.getElementById("cloudStatus");
+            if (!el) return;
+            el.className = "cloud-badge " + type;
+            let icon = "fa-cloud";
+            if (type === "saving") icon = "fa-spinner fa-spin";
+            if (type === "ok") icon = "fa-check-circle";
+            if (type === "err") icon = "fa-exclamation-circle";
+            el.innerHTML = `<i class="fas ${icon}"></i> ${text}`;
+        }
+
+        function getLegacyLocalData() {
+            const acc = getActiveAccount();
+            const saved = localStorage.getItem(acc.storageKey);
+            if (!saved) return null;
+            try { return JSON.parse(saved); } catch (e) { return null; }
+        }
+
+        function guessCategory(merchant) {
+            const m = (merchant || "").toUpperCase();
+            if (/CARREFOUR|LECLERC|LIDL|AUCHAN|INTERMARCHE|SUPER U|ALDI|BOULANGERIE|EPICERIE|PICARD|BIOCOOP|GRAND FRAIS|MONOPRIX|CASINO/.test(m)) return "ALIMENTATION & COURSES";
+            if (/TOTAL|ESSO|SHELL|BP|AVIA|STATION|AUTOROUTE|VINCI|SANEF|PARKING|SNCF|UBER|BOLT|NORAUTO|FEU VERT/.test(m)) return "AUTO & TRANSPORTS";
+            if (/MCDO|MCDONALD|BURGER KING|KFC|QUICK|DOMINO|PIZZA|SUSHI|RESTAURANT|BRASSERIE|CAFE|STARBUCKS|PAUL|BRIOCHE/.test(m)) return "RESTAURANTS & FAST-FOOD";
+            if (/PHARMACIE|DOCTEUR|MEDECIN|DENTISTE|OPTIQUE|LABORATOIRE|SANTE/.test(m)) return "SANTÉ";
+            if (/DECATHLON|ZARA|H&M|KIABI|NIKE|ADIDAS|AMAZON|FNAC|DARTY|ACTION|GIFI|CENTRAKOR|IKEA|LEROY MERLIN|CASTORAMA/.test(m)) return "SHOPPING & HABILLEMENT";
+            if (/CINEMA|PATHE|GAUMONT|UGC|NETFLIX|SPOTIFY|STEAM|PLAYSTATION|NINTENDO/.test(m)) return "LOISIRS & MULTIMÉDIA";
+            return "AUTRE";
+        }
+
+        async function loadFromGoogleSheets(manualClick = false) {
+            const acc = getActiveAccount();
+            const icon = document.getElementById("syncIcon");
+            if (icon) icon.classList.add("spin");
+            setCloudStatus("saving", "Sync...");
+            const legacyData = getLegacyLocalData();
+
+            try {
+                const response = await fetch(acc.url);
+                const data = await response.json();
+                if (data.status === "error") throw new Error(data.message);
+
+                if (data.config && Object.keys(data.config).length > 0) {
+                    if (data.config.startDay) {
+                        state.startDay = parseInt(data.config.startDay) || 25;
+                        updateStartDayBadge();
+                    }
+                    state.pointage = {};
+                    Object.keys(data.config).forEach(k => {
+                        if (k.startsWith("pointage_")) {
+                            const monthKey = k.replace("pointage_", "");
+                            state.pointage[monthKey] = data.config[k] ? data.config[k].split(",") : [];
+                        }
+                    });
+                } else if (legacyData) {
+                    if (legacyData.startDay) {
+                        state.startDay = legacyData.startDay;
+                        updateStartDayBadge();
+                    }
+                    if (legacyData.pointage) state.pointage = legacyData.pointage;
+                }
+
+                if (data.fixes && data.fixes.length > 0) {
+                    state.in = data.fixes.filter(f => f.type === "in");
+                    state.out = data.fixes.filter(f => f.type === "out");
+                } else if (legacyData) {
+                    if (legacyData.in) state.in = legacyData.in;
+                    if (legacyData.out) state.out = legacyData.out;
+                }
+
+                if (data.depenses) {
+                    state.expenses = data.depenses.map(row => {
+                        let rawAmt = String(row.montant || "0").replace(/[^0-9.,-]/g, '').replace(',', '.');
+                        let amount = parseFloat(rawAmt) || 0;
+                        let d = new Date(row.date);
+                        if (isNaN(d.getTime())) d = new Date();
+                        let exactDate = formatDateExact(d);
+                        let targetCycleMonth = getCycleMonthForDate(exactDate, state.startDay);
+                        let cat = row.cat || guessCategory(row.commercant);
+                        const isApple = String(row.id).startsWith("ap_") || String(row.carte).toLowerCase() !== "manuel";
+                        return {
+                            id: String(row.id),
+                            dateStr: targetCycleMonth,
+                            exactDate: exactDate,
+                            cat: cat,
+                            desc: row.commercant || "Dépense",
+                            amount: amount,
+                            fromApplePay: isApple
+                        };
+                    }).filter(e => e.amount > 0);
+                }
+
+                state.expenses.sort((a, b) => (b.exactDate || "").localeCompare(a.exactDate || ""));
+                localStorage.setItem(acc.storageKey, JSON.stringify(state));
+                renderAll();
+                setCloudStatus("ok", "OK");
+            } catch (err) {
+                if (legacyData) {
+                    if (legacyData.in) state.in = legacyData.in;
+                    if (legacyData.out) state.out = legacyData.out;
+                    if (legacyData.expenses) state.expenses = legacyData.expenses;
+                    if (legacyData.pointage) state.pointage = legacyData.pointage;
+                    if (legacyData.startDay) {
+                        state.startDay = legacyData.startDay;
+                        updateStartDayBadge();
+                    }
+                    renderAll();
+                }
+                setCloudStatus("err", "Hors-ligne");
+            } finally {
+                if (icon) icon.classList.remove("spin");
+            }
+        }
+
+        function saveData() {
+            const acc = getActiveAccount();
+            localStorage.setItem(acc.storageKey, JSON.stringify(state));
+            setCloudStatus("saving", "Envoi...");
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveToGoogleSheets();
+            }, 500);
+        }
+
+        async function saveToGoogleSheets() {
+            const acc = getActiveAccount();
+            try {
+                const fixesCombined = [
+                    ...state.in.map(i => ({ id: i.id, type: "in", jour: i.jour, nom: i.nom, montant: i.montant })),
+                    ...state.out.map(o => ({ id: o.id, type: "out", jour: o.jour, nom: o.nom, montant: o.montant }))
+                ];
+
+                const configObj = { startDay: String(state.startDay) };
+                Object.keys(state.pointage).forEach(monthKey => {
+                    configObj["pointage_" + monthKey] = (state.pointage[monthKey] || []).join(",");
+                });
+
+                const payload = {
+                    action: "sync_all",
+                    depenses: state.expenses,
+                    fixes: fixesCombined,
+                    config: configObj
+                };
+
+                const response = await fetch(acc.url, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+
+                const resJson = await response.json();
+                if (resJson.status === "success") {
+                    setCloudStatus("ok", "Enregistré");
+                } else {
+                    throw new Error(resJson.message || "Erreur serveur");
+                }
+            } catch (err) {
+                console.error("Erreur sauvegarde Google Sheets :", err);
+                setCloudStatus("err", "Erreur sync");
+            }
+        }
+
+        /* GESTION AJOUT / MODIFICATION / SUPPRESSION ENTRÉES & CHARGES FIXES */
+        function openFixedModal(type) {
+            currentFixedType = type;
+            editingFixedIdx = null;
+            const header = document.getElementById("fixedModalHeader");
+            const title = document.getElementById("fixedModalTitle");
+            const label = document.getElementById("fNameLabel");
+            const btn = document.getElementById("fixedSubmitBtn");
+
+            if (type === "in") {
+                header.className = "modal-header bg-green-grad";
+                title.innerHTML = `<i class="fas fa-arrow-down"></i><span>Nouvelle entrée</span>`;
+                label.innerText = "Source / Employeur";
+                document.getElementById("fDay").value = state.startDay || 25;
+                document.getElementById("fName").placeholder = "Ex: Salaire, CAF, Prime...";
+                btn.className = "btn-modal btn-submit-green";
+            } else {
+                header.className = "modal-header bg-red-grad";
+                title.innerHTML = `<i class="fas fa-arrow-up"></i><span>Nouvelle charge fixe</span>`;
+                label.innerText = "Description de la charge";
+                document.getElementById("fDay").value = 5;
+                document.getElementById("fName").placeholder = "Ex: Loyer, EDF, Assurance...";
+                btn.className = "btn-modal btn-submit-red";
+            }
+
+            document.getElementById("fName").value = "";
+            document.getElementById("fAmount").value = "";
+            document.getElementById("fixedModal").classList.add("open");
+        }
+
+        function editFixedItem(type, idx) {
+            const item = state[type][idx];
+            if (!item) return;
+
+            currentFixedType = type;
+            editingFixedIdx = idx;
+            const header = document.getElementById("fixedModalHeader");
+            const title = document.getElementById("fixedModalTitle");
+            const label = document.getElementById("fNameLabel");
+            const btn = document.getElementById("fixedSubmitBtn");
+
+            if (type === "in") {
+                header.className = "modal-header bg-green-grad";
+                title.innerHTML = `<i class="fas fa-pen"></i><span>Modifier l'entrée</span>`;
+                label.innerText = "Source / Employeur";
+                btn.className = "btn-modal btn-submit-green";
+            } else {
+                header.className = "modal-header bg-red-grad";
+                title.innerHTML = `<i class="fas fa-pen"></i><span>Modifier la charge fixe</span>`;
+                label.innerText = "Description de la charge";
+                btn.className = "btn-modal btn-submit-red";
+            }
+
+            document.getElementById("fDay").value = item.jour || (type === "in" ? (state.startDay || 25) : 5);
+            document.getElementById("fName").value = item.nom || "";
+            document.getElementById("fAmount").value = Number(item.montant) || "";
+            document.getElementById("fixedModal").classList.add("open");
+        }
+
+        function closeFixedModal() {
+            editingFixedIdx = null;
+            document.getElementById("fixedModal").classList.remove("open");
+        }
+
+        function saveFixedItem() {
+            const jour = parseInt(document.getElementById("fDay").value, 10);
+            const nom = document.getElementById("fName").value.trim().toUpperCase();
+            const montant = parseFloat(String(document.getElementById("fAmount").value).replace(',', '.'));
+
+            if (isNaN(jour) || jour < 1 || jour > 31) {
+                alert("Le jour doit être compris entre 1 et 31.");
+                return;
+            }
+            if (!nom) return;
+            if (isNaN(montant) || montant <= 0) {
+                alert("Le montant doit être supérieur à 0.");
+                return;
+            }
+
+            if (editingFixedIdx !== null && state[currentFixedType][editingFixedIdx]) {
+                state[currentFixedType][editingFixedIdx] = {
+                    ...state[currentFixedType][editingFixedIdx],
+                    jour: jour,
+                    nom: nom,
+                    montant: montant
+                };
+            } else {
+                state[currentFixedType].push({
+                    id: genId(currentFixedType),
+                    jour: jour,
+                    nom: nom,
+                    montant: montant
+                });
+            }
+
+            const panel = document.getElementById(currentFixedType === "in" ? "panelInMobile" : "panelOutMobile");
+            if (panel) panel.open = true;
+
+            saveData();
+            closeFixedModal();
+            renderAll();
+        }
+
+        function deleteFixedItem(type, idx) {
+            const item = state[type][idx];
+            if (!item) return;
+            const label = item.nom || "cette ligne";
+            if (confirm(`Supprimer "${label}" ?`)) {
+                state[type].splice(idx, 1);
+                saveData();
+                renderAll();
+            }
+        }
+
+        /* PAVÉ NUMÉRIQUE & MODALE DÉPENSE (AJOUT + MODIFICATION) */
+        function addNum(val) {
+            if (val === '.' && currentAmountStr.includes('.')) return;
+            if (currentAmountStr.includes('.') && currentAmountStr.split('.')[1].length >= 2) return;
+            if (currentAmountStr === "0" && val !== ".") currentAmountStr = val;
+            else currentAmountStr += val;
+            document.getElementById("mAmount").value = currentAmountStr;
+        }
+
+        function delNum() {
+            currentAmountStr = currentAmountStr.slice(0, -1);
+            document.getElementById("mAmount").value = currentAmountStr;
+        }
+
+        function openModal() {
+            editingExpenseId = null;
+            currentAmountStr = "";
+            document.getElementById("expenseModalTitle").innerHTML = `<i class="fas fa-cart-plus"></i><span>Nouvelle dépense</span>`;
+            document.getElementById("expenseSubmitBtn").innerHTML = `<i class="fas fa-check"></i> Valider`;
+            document.getElementById("mAmount").value = "";
+            document.getElementById("mDesc").value = "";
+            document.getElementById("mCat").value = "";
+            document.getElementById("mDate").value = getToday();
+            document.getElementById("modal").classList.add("open");
+        }
+
+        function editExpense(id) {
+            const exp = state.expenses.find(e => String(e.id) === String(id));
+            if (!exp) return;
+
+            editingExpenseId = String(exp.id);
+            currentAmountStr = String(Number(exp.amount));
+            document.getElementById("expenseModalTitle").innerHTML = `<i class="fas fa-pen"></i><span>Modifier la dépense</span>`;
+            document.getElementById("expenseSubmitBtn").innerHTML = `<i class="fas fa-check"></i> Enregistrer`;
+            document.getElementById("mDate").value = exp.exactDate || getToday();
+            document.getElementById("mCat").value = categories.includes(exp.cat) ? exp.cat : "AUTRE";
+            document.getElementById("mDesc").value = exp.desc || "";
+            document.getElementById("mAmount").value = currentAmountStr;
+            document.getElementById("modal").classList.add("open");
+        }
+
+        function closeModal() {
+            editingExpenseId = null;
+            document.getElementById("modal").classList.remove("open");
+        }
+
+        function saveExpense() {
+            const amt = Number(currentAmountStr);
+            if (isNaN(amt) || amt <= 0) {
+                alert("Le montant doit être supérieur à 0.");
+                return;
+            }
+
+            const dateVal = document.getElementById("mDate").value;
+            const targetCycleMonth = getCycleMonthForDate(dateVal, state.startDay);
+            const catVal = document.getElementById("mCat").value;
+            const descVal = document.getElementById("mDesc").value.trim();
+
+            if (editingExpenseId) {
+                const idx = state.expenses.findIndex(e => String(e.id) === editingExpenseId);
+                if (idx !== -1) {
+                    state.expenses[idx] = {
+                        ...state.expenses[idx],
+                        dateStr: targetCycleMonth,
+                        exactDate: dateVal,
+                        cat: catVal,
+                        desc: descVal,
+                        amount: amt
+                    };
+                }
+            } else {
+                state.expenses.unshift({
+                    id: "man_" + Date.now(),
+                    dateStr: targetCycleMonth,
+                    exactDate: dateVal,
+                    cat: catVal,
+                    desc: descVal,
+                    amount: amt,
+                    fromApplePay: false
+                });
+            }
+
+            state.expenses.sort((a, b) => (b.exactDate || "").localeCompare(a.exactDate || ""));
+
+            if (state.currentDate !== targetCycleMonth) {
+                state.currentDate = targetCycleMonth;
+                document.getElementById("datePicker").value = targetCycleMonth;
+            }
+
+            saveData();
+            closeModal();
+            renderAll();
+        }
+
+        function deleteExpense(id) {
+            if (confirm("Supprimer cette dépense ?")) {
+                state.expenses = state.expenses.filter(e => String(e.id) !== String(id));
+                saveData();
+                renderAll();
+            }
+        }
+
+        function clampDay(y, m, d) {
+            let max = new Date(y, m + 1, 0).getDate();
+            return d > max ? max : d;
+        }
+
+        function generateCycleDates(monthStr, startDay) {
+            let [y, m] = monthStr.split('-').map(Number);
+            let d1 = new Date(y, m - 2, clampDay(y, m - 2, startDay));
+            let d2 = new Date(y, m - 1, clampDay(y, m - 1, startDay));
+            let dates = [];
+            let curr = new Date(d1);
+            while (curr < d2) {
+                dates.push(new Date(curr));
+                curr.setDate(curr.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function generateWeeksFromCycle(datesArray) {
+            let weeks = [];
+            for (let i = 0; i < 5; i++) {
+                let chunk = datesArray.slice(i * 7, (i + 1) * 7);
+                if (chunk.length === 0) break;
+                let s = String(chunk[0].getDate()).padStart(2, '0');
+                let e = String(chunk[chunk.length - 1].getDate()).padStart(2, '0');
+                weeks.push({
+                    label: `S${i+1} • Du ${s} au ${e}`,
+                    days: chunk.length,
+                    datesStr: chunk.map(d => formatDateExact(d))
+                });
+            }
+            return weeks;
+        }
+
+        function formatDateExact(d) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function getCycleMonthForDate(dateStr, startDay) {
+            let d = new Date(dateStr);
+            let y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+            let maxD = new Date(y, m, 0).getDate();
+            if (day >= (startDay > maxD ? maxD : startDay)) {
+                m += 1; if (m > 12) { m = 1; y += 1; }
+            }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
+        function getToday() { return formatDateExact(new Date()); }
+        const fmt = (num) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(num || 0);
+
+        function renderAll() {
+            let totIn = state.in.reduce((s, i) => s + Number(i.montant), 0);
+            let totOut = state.out.reduce((s, i) => s + Number(i.montant), 0);
+            let budget = totIn - totOut;
+
+            document.getElementById("kpiIn").innerText = fmt(totIn);
+            document.getElementById("kpiOut").innerText = "-" + fmt(totOut);
+            document.getElementById("kpiBudget").innerText = fmt(budget);
+
+            let cycleDates = generateCycleDates(state.currentDate, state.startDay);
+            let dynamicWeeks = generateWeeksFromCycle(cycleDates);
+            let budgetPerDay = budget / cycleDates.length;
+            let currentExpenses = state.expenses.filter(e => e.dateStr === state.currentDate);
+            const todayStr = getToday();
+
+            let hWeeks = "";
+            let remainingMois = 0;
+            dynamicWeeks.forEach(w => {
+                let dispo = budgetPerDay * w.days;
+                let spent = currentExpenses.filter(e => w.datesStr.includes(e.exactDate)).reduce((s, e) => s + e.amount, 0);
+                let reste = dispo - spent;
+                remainingMois += reste;
+                const isNow = w.datesStr.includes(todayStr);
+
+                hWeeks += `
+                <div class="week-card ${reste < 0 ? 'neg' : ''} ${isNow ? 'active-week' : ''}">
+                    ${isNow ? '<span class="badge-now">En cours</span>' : ''}
+                    <div>
+                        <div class="w-title">${w.label}</div>
+                        <div class="w-sub">Budget ${fmt(dispo)} • Dépensé ${fmt(spent)}</div>
+                    </div>
+                    <div class="w-reste ${reste < 0 ? 'text-red' : 'text-green'}">${reste > 0 ? '+' : ''}${fmt(reste)}</div>
+                </div>`;
+            });
+            document.getElementById("weeksList").innerHTML = hWeeks;
+
+            const kpiFinal = document.getElementById("kpiFinal");
+            kpiFinal.innerText = fmt(remainingMois);
+            kpiFinal.className = "kpi-val " + (remainingMois < 0 ? "val-red" : "val-green");
+
+            const monthPointage = state.pointage[state.currentDate] || [];
+            const buildFixedRow = (item, idx, type) => {
+                const isChecked = monthPointage.includes(item.id);
+                return `
+                <div class="fixed-row ${isChecked ? 'checked' : ''}" onclick="editFixedItem('${type}', ${idx})">
+                    <div class="f-left">
+                        <span class="f-day">J${item.jour}</span>
+                        <span class="f-name">${item.nom || 'Sans nom'}</span>
+                    </div>
+                    <div class="f-right" onclick="event.stopPropagation();">
+                        <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}" onclick="editFixedItem('${type}', ${idx})">
+                            ${type === 'in' ? '+' : '-'}${fmt(item.montant)}
+                        </span>
+                        <button type="button" class="btn-edit-exp" onclick="editFixedItem('${type}', ${idx})" title="Modifier">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button type="button" class="btn-del-exp" onclick="deleteFixedItem('${type}', ${idx})" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>`;
+            };
+
+            document.getElementById("listInMobile").innerHTML = state.in.length === 0
+                ? `<div style="padding:18px; text-align:center; font-size:12px; color:var(--text-muted);">Aucune entrée enregistrée.</div>`
+                : state.in.map((x, i) => buildFixedRow(x, i, 'in')).join("");
+
+            document.getElementById("listOutMobile").innerHTML = state.out.length === 0
+                ? `<div style="padding:18px; text-align:center; font-size:12px; color:var(--text-muted);">Aucune charge fixe enregistrée.</div>`
+                : state.out.map((x, i) => buildFixedRow(x, i, 'out')).join("");
+
+            document.getElementById("expCount").innerText = currentExpenses.length + " opération(s)";
+            if (currentExpenses.length === 0) {
+                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">Aucune dépense sur ce mois.</td></tr>`;
+            } else {
+                document.getElementById("tableExpenses").innerHTML = currentExpenses.map(e => {
+                    const dAff = e.exactDate ? e.exactDate.split('-').reverse().slice(0,2).join('/') : '';
+                    const apple = e.fromApplePay ? `<i class="fab fa-apple" style="color:#475569; margin-right:3px;"></i>` : '';
+                    return `
+                    <tr class="exp-row-clickable" onclick="editExpense('${e.id}')">
+                        <td style="color: var(--text-muted); font-size: 12px;">${dAff}</td>
+                        <td>
+                            <div>${apple}${e.desc}</div>
+                            <span class="exp-cat-tag">${e.cat}</span>
+                        </td>
+                        <td class="text-red" style="text-align: right; font-weight: 900; white-space: nowrap;">-${fmt(e.amount)}</td>
+                        <td style="text-align: right;" onclick="event.stopPropagation();">
+                            <div class="exp-actions-cell">
+                                <button type="button" class="btn-edit-exp" onclick="editExpense('${e.id}')" title="Modifier">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" class="btn-del-exp" onclick="deleteExpense('${e.id}')" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join("");
+            }
+        }
+
+        function init() {
+            updateHeaderAccountTitle();
+            updateStartDayBadge();
+
+            const picker = document.getElementById("datePicker");
+            picker.value = state.currentDate;
+            picker.addEventListener("change", (e) => {
+                state.currentDate = e.target.value;
+                renderAll();
+            });
+
+            const catSel = document.getElementById("mCat");
+            catSel.innerHTML = '<option value="" disabled selected>-- Choisir --</option>';
+            categories.forEach(c => {
+                let opt = document.createElement("option");
+                opt.value = c;
+                opt.text = c;
+                catSel.appendChild(opt);
+            });
+
+            loadFromGoogleSheets(false);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
